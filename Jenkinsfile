@@ -33,11 +33,13 @@ pipeline {
             }
         }
 
-        stage('Run New Jar') {
+        stage('Run New Jar in Background') {
             steps {
                 bat '''
-                    echo Launching Spring Boot app directly...
-                    java -jar target\\Jenkins-Demo-0.0.1-SNAPSHOT.jar > spring.log 2>&1
+                    echo Starting Spring Boot App in background...
+                    start "" java -jar target\\Jenkins-Demo-0.0.1-SNAPSHOT.jar > spring.log 2>&1
+                    timeout /T 5
+                    echo ✅ App launched, Jenkins will now finish.
                 '''
             }
         }
@@ -45,7 +47,7 @@ pipeline {
 
     post {
         success {
-            echo '✅ Build and Deployment Successful!'
+            echo '✅ Build and Background Deployment Successful!'
         }
         failure {
             echo '❌ Build or Deployment Failed!'
