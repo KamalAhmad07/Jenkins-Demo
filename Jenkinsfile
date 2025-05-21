@@ -21,10 +21,14 @@ pipeline {
         stage('Kill Previous App') {
             steps {
                 bat '''
+                    echo Checking if anything runs on 8081...
+                    netstat -aon | findstr :8081
+
                     FOR /F "tokens=5" %%P IN ('netstat -aon ^| findstr :8081') DO (
                         echo Killing PID %%P
-                        taskkill /F /PID %%P || exit /B 0
+                        taskkill /F /PID %%P
                     )
+                    exit /B 0
                 '''
             }
         }
