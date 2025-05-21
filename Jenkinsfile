@@ -1,8 +1,8 @@
 pipeline {
-    agent any  // Use any available Jenkins agent
+    agent any
 
     tools {
-        maven 'M3'  // Name of your Maven installation in Jenkins (we’ll set this later)
+        maven 'M3'  // This must match the Maven name you configured in Jenkins tools
     }
 
     stages {
@@ -14,19 +14,19 @@ pipeline {
 
         stage('Build') {
             steps {
-                sh 'mvn clean install'
+                bat 'mvn clean install'
             }
         }
 
         stage('Test') {
             steps {
-                sh 'mvn test'
+                bat 'mvn test'
             }
         }
 
         stage('Package') {
             steps {
-                sh 'mvn package'
+                bat 'mvn package'
             }
         }
     }
