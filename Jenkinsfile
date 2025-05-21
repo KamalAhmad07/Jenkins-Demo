@@ -36,11 +36,8 @@ pipeline {
         stage('Run New Jar') {
             steps {
                 bat '''
-                    echo Launching Spring Boot application...
-                    start "" java -jar target\\Jenkins-Demo-0.0.1-SNAPSHOT.jar > spring.log 2>&1
-                    timeout /T 5 > NUL
-                    echo Checking logs...
-                    type spring.log
+                    echo Launching Spring Boot app directly...
+                    java -jar target\\Jenkins-Demo-0.0.1-SNAPSHOT.jar > spring.log 2>&1
                 '''
             }
         }
