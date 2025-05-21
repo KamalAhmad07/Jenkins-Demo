@@ -18,7 +18,6 @@ ngrok (for webhook testing)
 
 Git plugin, GitHub plugin installed in Jenkins
 
-
 📂 Project Structure
 
 Jenkins-Demo/
@@ -29,36 +28,50 @@ Jenkins-Demo/
 
 
 ✅ Option 1: Jenkins Freestyle Job Setup
+
 🔁 Step-by-Step
 
 1. Open Jenkins → New Item → Freestyle project → Enter job name → OK
 
 2. Go to ⬇️ Source Code Management:
+     
      Select Git
+     
      Repository URL: https://github.com/KamalAhmad07/Jenkins-Demo.git
 
 3. ⬇️ Build Triggers:
-     ✅ Check “GitHub hook trigger for GITScm polling”
+    
+      ✅ Check “GitHub hook trigger for GITScm polling”
 
 4. ⬇️ Build Steps:
+
     Add build step → Execute Windows batch command: mvn clean install
+   
     Optional: Run app after build: java -jar target\Jenkins-Demo-0.0.1-SNAPSHOT.jar
 
 5. Save the job → Click “Build Now” to test
 
 
 ✅ Option 2: Jenkins Pipeline Job Setup (Recommended)
+
 🛠 Step-by-Step
+
 1. Jenkins → New Item → Pipeline → Enter job name → OK
 
 2. ⬇️ Pipeline Definition:
+      
       Definition: Pipeline script from SCM
+
       SCM: Git 
+
       Repo URL: https://github.com/your-username/Jenkins-Demo.git
+    
       Script Path: Jenkinsfile
 
 3. ⬇️ Build Triggers:
+      
       ✅ Check “GitHub hook trigger for GITScm polling”
+
 
 4. Save → Click “Build Now” to test
 
