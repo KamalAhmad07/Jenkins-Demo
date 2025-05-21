@@ -20,10 +20,12 @@ pipeline {
 
         stage('Kill Previous App') {
             steps {
-                script {
-                    // Kill any app running on port 8081
-                    bat 'for /f "tokens=5" %%a in (\'netstat -aon ^| findstr :8081\') do taskkill /F /PID %%a || exit 0'
-                }
+                bat '''
+                    FOR /F "tokens=5" %%P IN ('netstat -aon ^| findstr :8081') DO (
+                        echo Killing PID %%P
+                        taskkill /F /PID %%P || exit /B 0
+                    )
+                '''
             }
         }
 
