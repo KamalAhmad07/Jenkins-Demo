@@ -2,11 +2,11 @@ pipeline {
     agent any
 
     tools {
-        maven 'M3'  // This must match the Maven name you configured in Jenkins tools
+        maven 'M3'
     }
 
     stages {
-        stage('Clone') {
+        stage('Checkout') {
             steps {
                 git 'https://github.com/KamalAhmad07/Jenkins-Demo.git'
             }
@@ -18,25 +18,28 @@ pipeline {
             }
         }
 
-        stage('Test') {
+        stage('Kill Previous App') {
             steps {
-                bat 'mvn test'
+                script {
+                    // Kill any app running on port 8081
+                    bat 'for /f "tokens=5" %%a in (\'netstat -aon ^| findstr :8081\') do taskkill /F /PID %%a || exit 0'
+                }
             }
         }
 
-        stage('Package') {
+        stage('Run New Jar') {
             steps {
-                bat 'mvn package'
+                bat 'start "" java -jar target\\Jenkins-Demo-0.0.1-SNAPSHOT.jar'
             }
         }
     }
 
     post {
         success {
-            echo 'Build and Test passed!'
+            echo '✅ Build and Deployment Successful!'
         }
         failure {
-            echo 'Build or Test failed.'
+            echo '❌ Build or Deployment Failed!'
         }
     }
 }
