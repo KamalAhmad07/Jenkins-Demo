@@ -34,14 +34,14 @@ pipeline {
         }
 
         stage('Run New Jar in Background') {
-            steps {
-                bat '''
-                    echo Starting Spring Boot App in background...
-                    start "" java -jar target\\Jenkins-Demo-0.0.1-SNAPSHOT.jar > spring.log 2>&1
-                    timeout /T 5
-                    echo ✅ App launched, Jenkins will now finish.
-                '''
-            }
+               steps {
+                   bat '''
+                       echo Starting Spring Boot App in background...
+                       start "" java -jar target\\Jenkins-Demo-0.0.1-SNAPSHOT.jar > spring.log 2>&1
+                       ping 127.0.0.1 -n 6 > nul
+                       echo ✅ App launched, Jenkins will now finish.
+                   '''
+               }
         }
     }
 
