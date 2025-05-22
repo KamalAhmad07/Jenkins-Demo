@@ -50,9 +50,9 @@ pipeline {
         stage('Run App') {
             steps {
                 bat """
-                    echo Running Spring Boot app for '${params.ENV}' environment on port ${params.PORT}
-                    java -DSPRING_PROFILES_ACTIVE=${params.ENV} -DPORT=${params.PORT} -DMYSQL_PASSWORD=${env.MYSQL_PASSWORD} -jar target\\${env.JAR_NAME}
-                """
+                           echo Running Spring Boot app for '${params.ENV}' environment on port ${params.PORT}
+                           java -DSPRING_PROFILES_ACTIVE=${params.ENV} -DSERVER_PORT=${params.PORT} -DMYSQL_PASSWORD=${env.MYSQL_PASSWORD} -jar target\\${env.JAR_NAME}
+                    """
             }
         }
 
