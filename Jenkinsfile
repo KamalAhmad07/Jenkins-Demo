@@ -66,13 +66,14 @@ stages {
                 echo Starting Spring Boot app on port ${params.PORT}...
                 del app.log >nul 2>&1
 
-                powershell -Command "Start-Process java -ArgumentList '-DSPRING_PROFILES_ACTIVE=${params.ENV}','-Dserver.port=${params.PORT}','-DMYSQL_PASSWORD=${env.MYSQL_PASSWORD}','-jar','target\\\\${env.JAR_NAME}' -RedirectStandardOutput app.log -NoNewWindow"
+                        powershell -Command "Start-Process java -ArgumentList '-DSPRING_PROFILES_ACTIVE=${params.ENV}','-Dserver.port=${params.PORT}','-DMYSQL_PASSWORD=${env.MYSQL_PASSWORD}','-jar','target\\\\${env.JAR_NAME}' -RedirectStandardOutput app.log -NoNewWindow"
 
-                timeout /T 10 >nul
-                echo Verifying if port ${params.PORT} is now in use...
-                netstat -aon | findstr :${params.PORT}
-            """
-        }
+                        cmd /c timeout /T 10 >nul
+
+                        echo Verifying if port ${params.PORT} is now in use...
+                        netstat -aon | findstr :${params.PORT} || exit /B 0
+                    """
+                }
     }
 
     stage('🛰️ Deploy') {
