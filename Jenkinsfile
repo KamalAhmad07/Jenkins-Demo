@@ -1,107 +1,124 @@
 pipeline {
-    agent any
 
-    parameters {
-        choice(name: 'ENV', choices: ['dev', 'staging', 'prod'], description: 'Select the deployment environment')
-        string(name: 'PORT', defaultValue: '0', description: 'Set to 0 for dynamic port or use a fixed one')
+agent any
+
+parameters {
+    choice(name: 'ENV', choices: ['dev', 'staging', 'prod'], description: 'Select the deployment environment')
+    string(name: 'PORT', defaultValue: '8082', description: 'Application port to run the service')
+}
+
+environment {
+    JAR_NAME = "Jenkins-Demo-${params.ENV}.jar"
+    MYSQL_PASSWORD = credentials('MYSQL_PASSWORD')
+}
+
+tools {
+    maven 'M3'
+}
+
+stages {
+    stage('🧾 Checkout') {
+        steps {
+            git 'https://github.com/KamalAhmad07/Jenkins-Demo.git'
+        }
     }
 
-    environment {
-        JAR_NAME = "Jenkins-Demo-${params.ENV}.jar"
-        MYSQL_PASSWORD = credentials('MYSQL_PASSWORD')
+    stage('🏗️ Build') {
+        steps {
+            bat 'mvn clean install'
+        }
     }
 
-    tools {
-        maven 'M3'
+    stage('🧪 Run Tests') {
+        steps {
+            bat 'mvn test'
+        }
     }
 
-    stages {
-        stage('Checkout') {
-            steps {
-                git 'https://github.com/KamalAhmad07/Jenkins-Demo.git'
-            }
+    stage('🗃️ Rename Jar') {
+        steps {
+            bat "copy target\\Jenkins-Demo-0.0.1-SNAPSHOT.jar target\\${env.JAR_NAME}"
         }
+    }
 
-        stage('Build') {
-            steps {
-                bat 'mvn clean install'
-            }
+    stage('📦 Archive Artifact') {
+        steps {
+            archiveArtifacts artifacts: "target/${env.JAR_NAME}", fingerprint: true
         }
+    }
 
-        stage('Run Tests') {
-            steps {
-                bat 'mvn test'
-            }
-        }
-
-        stage('Rename Jar') {
-            steps {
-                bat "copy target\\Jenkins-Demo-0.0.1-SNAPSHOT.jar target\\${env.JAR_NAME}"
-            }
-        }
-
-        stage('Archive Artifact') {
-            steps {
-                archiveArtifacts artifacts: "target/${env.JAR_NAME}", fingerprint: true
-            }
-        }
-
-    stage('Run App in Background with Dynamic Port') {
+    stage('❌ Kill Previous App on Port') {
         steps {
             bat """
-                echo 🚀 Starting Spring Boot app on dynamic port...
-                del app.log >nul 2>&1
-                powershell -Command "Start-Process java -ArgumentList '-DSPRING_PROFILES_ACTIVE=${params.ENV}','-Dserver.port=0','-DMYSQL_PASSWORD=${env.MYSQL_PASSWORD}','-jar','target\\\\${env.JAR_NAME}' -RedirectStandardOutput app.log -NoNewWindow"
-
-                timeout /T 10 >nul
-                echo 🔍 Reading dynamic port from app.log...
-                powershell -Command "\$port = Select-String 'Tomcat started on port\\(s\\): (\\d+)' -Path app.log | ForEach-Object { \$_.Matches[0].Groups[1].Value }; echo 🌐 Application started on dynamic port: \$port"
+                echo Checking for any process using port ${params.PORT}...
+                for /f "tokens=5" %%a in ('netstat -aon ^| findstr :${params.PORT}') do (
+                    echo Killing PID %%a
+                    taskkill /F /PID %%a || exit /B 0
+                )
+                exit /B 0
             """
         }
     }
 
-        stage('Deploy') {
-            steps {
-                echo "📦 Deploying to ${params.ENV} environment... (simulated)"
-            }
+    stage('🚀 Run App on Fixed Port') {
+        steps {
+            bat """
+                echo Starting Spring Boot app on port ${params.PORT}...
+                del app.log >nul 2>&1
+
+                powershell -Command "Start-Process java -ArgumentList '-DSPRING_PROFILES_ACTIVE=${params.ENV}','-Dserver.port=${params.PORT}','-DMYSQL_PASSWORD=${env.MYSQL_PASSWORD}','-jar','target\\\\${env.JAR_NAME}' -RedirectStandardOutput app.log -NoNewWindow"
+
+                timeout /T 10 >nul
+                echo Verifying if port ${params.PORT} is now in use...
+                netstat -aon | findstr :${params.PORT}
+            """
         }
     }
 
-    post {
-        success {
-            echo "✅ Build & Deployment successful for environment: ${params.ENV}"
-            mail to: 'kamalahmaddhaka2002@gmail.com',
-                 subject: "✅ SUCCESS: Jenkins Build #${env.BUILD_NUMBER} - ${params.ENV}",
-                 body: """Great news Kamal! 🎉
+    stage('🛰️ Deploy') {
+        steps {
+            echo "✅ Deploying '${env.JAR_NAME}' to environment: ${params.ENV} on port: ${params.PORT}"
+        }
+    }
+}
 
-✅ The Jenkins build and deployment for environment '${params.ENV}' completed successfully using dynamic port!
+post {
+    success {
+        echo "✅ Build & Deployment successful on port ${params.PORT}"
+        mail to: 'kamalahmaddhaka2002@gmail.com',
+             subject: "✅ SUCCESS: Jenkins Build #${env.BUILD_NUMBER} - ${params.ENV}",
+             body: """Hey Kamal! 🎉
 
-🌐 View Build: ${env.BUILD_URL}
-🛠️ Job: ${env.JOB_NAME}
+✅ Your app was built and deployed successfully on port ${params.PORT} in the '${params.ENV}' environment.
+
+🔗 Build: ${env.BUILD_URL}
+📦 Job: ${env.JOB_NAME}
 🔢 Build #: ${env.BUILD_NUMBER}
 
-- Jenkins Pipeline Bot 🤖
+Jenkins Pipeline Bot 🤖
 """
-        }
+}
 
-        failure {
-            echo "Build or Deployment failed"
-            mail to: 'kamalahmaddhaka2002@gmail.com',
-                 subject: "FAILED: Jenkins Build #${env.BUILD_NUMBER} - ${params.ENV}",
-                 body: """Hey Kamal,
+  failure {
+      echo "❌ Build or Deployment failed"
+      mail to: 'kamalahmaddhaka2002@gmail.com',
+           subject: "❌ FAILED: Jenkins Build #${env.BUILD_NUMBER} - ${params.ENV}",
+           body: """Hey Kamal,
 
- The Jenkins build for environment '${params.ENV}' failed.
+❌ Something broke in your build or deployment.
 
-Check Console Logs: ${env.BUILD_URL}
+🌐 Job: ${env.JOB_NAME}
+🔗 Logs: ${env.BUILD_URL}
 
-Fix it fast — or blame the intern
+Please fix it fast or just restart Jenkins 😅
 
-- Jenkins Pipeline Bot
+Jenkins Pipeline Bot 🤖
 """
-        }
+}
 
-        always {
-            echo " Jenkins job completed"
-        }
-    }
+  always {
+      echo "📦 Jenkins job completed"
+  }
+
+}
 }
