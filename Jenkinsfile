@@ -3,12 +3,11 @@ pipeline {
 
     parameters {
         choice(name: 'ENV', choices: ['dev', 'staging', 'prod'], description: 'Select the deployment environment')
-        string(name: 'PORT', defaultValue: '8081', description: 'Application port')
+        string(name: 'PORT', defaultValue: '0', description: 'Set to 0 for dynamic port or use a fixed one')
     }
 
     environment {
         JAR_NAME = "Jenkins-Demo-${params.ENV}.jar"
-        APP_PORT = "${params.PORT}"
         MYSQL_PASSWORD = credentials('MYSQL_PASSWORD')
     }
 
@@ -47,24 +46,16 @@ pipeline {
             }
         }
 
-        stage('Kill Previous App') {
+        stage('Run App in Background with Dynamic Port') {
             steps {
                 bat """
-                    echo Checking for any process on port ${params.PORT}...
-                    for /f "tokens=5" %%a in ('netstat -aon ^| findstr :${params.PORT}') do (
-                        echo 🔪 Killing PID %%a
-                        taskkill /F /PID %%a || exit /B 0
-                    )
-                    exit /B 0
-                """
-            }
-        }
+                    echo 🚀 Starting Spring Boot app on dynamic port...
+                    del app.log >nul 2>&1
+                    powershell -Command "Start-Process java -ArgumentList '-DSPRING_PROFILES_ACTIVE=${params.ENV}','-Dserver.port=0','-DMYSQL_PASSWORD=${env.MYSQL_PASSWORD}','-jar','target\\\\${env.JAR_NAME}' -RedirectStandardOutput app.log -NoNewWindow"
 
-        stage('Run App in Background') {
-            steps {
-                bat """
-                    echo 🚀 Starting Spring Boot app in background on port ${params.PORT}...
-                    powershell -Command "Start-Process java -ArgumentList '-DSPRING_PROFILES_ACTIVE=${params.ENV}', '-DSERVER_PORT=${params.PORT}', '-DMYSQL_PASSWORD=${env.MYSQL_PASSWORD}', '-jar', 'target\\\\${env.JAR_NAME}' -NoNewWindow -WindowStyle Hidden"
+                    timeout /T 10 >nul
+                    echo 🔍 Reading dynamic port from app.log...
+                    powershell -Command "$port = Select-String 'Tomcat started on port\\(s\\): (\\d+)' -Path app.log | ForEach-Object { $_.Matches[0].Groups[1].Value }; echo 🌐 Application started on dynamic port: $port"
                 """
             }
         }
@@ -83,7 +74,7 @@ pipeline {
                  subject: "✅ SUCCESS: Jenkins Build #${env.BUILD_NUMBER} - ${params.ENV}",
                  body: """Great news Kamal! 🎉
 
-✅ The Jenkins build and deployment for environment '${params.ENV}' completed successfully.
+✅ The Jenkins build and deployment for environment '${params.ENV}' completed successfully using dynamic port!
 
 🌐 View Build: ${env.BUILD_URL}
 🛠️ Job: ${env.JOB_NAME}
