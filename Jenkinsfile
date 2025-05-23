@@ -46,19 +46,19 @@ pipeline {
             }
         }
 
-        stage('Run App in Background with Dynamic Port') {
-            steps {
-                bat """
-                    echo 🚀 Starting Spring Boot app on dynamic port...
-                    del app.log >nul 2>&1
-                    powershell -Command "Start-Process java -ArgumentList '-DSPRING_PROFILES_ACTIVE=${params.ENV}','-Dserver.port=0','-DMYSQL_PASSWORD=${env.MYSQL_PASSWORD}','-jar','target\\\\${env.JAR_NAME}' -RedirectStandardOutput app.log -NoNewWindow"
+    stage('Run App in Background with Dynamic Port') {
+        steps {
+            bat """
+                echo 🚀 Starting Spring Boot app on dynamic port...
+                del app.log >nul 2>&1
+                powershell -Command "Start-Process java -ArgumentList '-DSPRING_PROFILES_ACTIVE=${params.ENV}','-Dserver.port=0','-DMYSQL_PASSWORD=${env.MYSQL_PASSWORD}','-jar','target\\\\${env.JAR_NAME}' -RedirectStandardOutput app.log -NoNewWindow"
 
-                    timeout /T 10 >nul
-                    echo 🔍 Reading dynamic port from app.log...
-                    powershell -Command "$port = Select-String 'Tomcat started on port\\(s\\): (\\d+)' -Path app.log | ForEach-Object { $_.Matches[0].Groups[1].Value }; echo 🌐 Application started on dynamic port: $port"
-                """
-            }
+                timeout /T 10 >nul
+                echo 🔍 Reading dynamic port from app.log...
+                powershell -Command "\$port = Select-String 'Tomcat started on port\\(s\\): (\\d+)' -Path app.log | ForEach-Object { \$_.Matches[0].Groups[1].Value }; echo 🌐 Application started on dynamic port: \$port"
+            """
         }
+    }
 
         stage('Deploy') {
             steps {
@@ -85,23 +85,23 @@ pipeline {
         }
 
         failure {
-            echo "❌ Build or Deployment failed"
+            echo "Build or Deployment failed"
             mail to: 'kamalahmaddhaka2002@gmail.com',
-                 subject: "❌ FAILED: Jenkins Build #${env.BUILD_NUMBER} - ${params.ENV}",
+                 subject: "FAILED: Jenkins Build #${env.BUILD_NUMBER} - ${params.ENV}",
                  body: """Hey Kamal,
 
-❌ The Jenkins build for environment '${params.ENV}' failed.
+ The Jenkins build for environment '${params.ENV}' failed.
 
-📎 Check Console Logs: ${env.BUILD_URL}
+Check Console Logs: ${env.BUILD_URL}
 
-Fix it fast — or blame the intern 😅
+Fix it fast — or blame the intern
 
-- Jenkins Pipeline Bot 🤖
+- Jenkins Pipeline Bot
 """
         }
 
         always {
-            echo "📦 Jenkins job completed"
+            echo " Jenkins job completed"
         }
     }
 }
