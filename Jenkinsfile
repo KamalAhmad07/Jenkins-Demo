@@ -87,6 +87,7 @@ post {
     success {
         echo "✅ Build & Deployment successful on port ${params.PORT}"
         mail to: 'kamalahmaddhaka2002@gmail.com',
+             cc: 'jointokamal9@gmail.com'
              subject: "✅ SUCCESS: Jenkins Build #${env.BUILD_NUMBER} - ${params.ENV}",
              body: """Hey Kamal! 🎉
 
