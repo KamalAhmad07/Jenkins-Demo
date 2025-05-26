@@ -1,3 +1,5 @@
+pipeline {
+agent any
 parameters {
     choice(name: 'ENV', choices: ['dev', 'staging', 'prod'], description: 'Select the deployment environment')
     string(name: 'PORT', defaultValue: '8082', description: 'Application port to run the service')
@@ -104,11 +106,11 @@ post {
         mail to: 'kamalahmaddhaka2002@gmail.com',
              cc: 'jointokamal9@gmail.com',
              subject: "✅ SUCCESS: Jenkins Build #${env.BUILD_NUMBER} - ${params.ENV}",
-             body: """Hey Kamal! 🎉
+             body: """Hey Kamal! 
+             
+✅ Your app was built, Docker image was pushed, and deployed successfully on port ${params.PORT} in the '${params.ENV}' environment.
 
-
-✅ Your app was built and deployed successfully on port ${params.PORT} in the '${params.ENV}' environment.
-
+🖼️ Docker Image: ${env.IMAGE_NAME}:${env.BUILD_NUMBER}
 🔗 Build: ${env.BUILD_URL}
 📦 Job: ${env.JOB_NAME}
 🔢 Build #: ${env.BUILD_NUMBER}
@@ -117,18 +119,18 @@ Jenkins Pipeline Bot 🤖
 """
 }
 
+
   failure {
       echo "❌ Build or Deployment failed"
       mail to: 'kamalahmaddhaka2002@gmail.com',
            subject: "❌ FAILED: Jenkins Build #${env.BUILD_NUMBER} - ${params.ENV}",
            body: """Hey Kamal,
 
-❌ Something broke in your build or deployment.
+
+❌ Something broke in your build or Docker process.
 
 🌐 Job: ${env.JOB_NAME}
 🔗 Logs: ${env.BUILD_URL}
-
-Please fix it fast or just restart Jenkins 😅
 
 Jenkins Pipeline Bot 🤖
 """
@@ -137,6 +139,5 @@ Jenkins Pipeline Bot 🤖
   always {
       echo "📦 Jenkins job completed"
   }
-
 }
 }
