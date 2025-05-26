@@ -5,6 +5,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+import static java.util.List.of;
+
 @RestController
 public class Controller {
     @GetMapping("/hello")
@@ -14,7 +16,7 @@ public class Controller {
 
     @GetMapping("/getUsers")
     public List<Student> getUsers() {
-        List<Student> students = List.of(
+        List<Student> students = of(
                 new Student(1,"Kamal","Rowing club Road Bhawanipur Motihari","India"),
                 new Student(2,"Sidd","Chhatauni Colony Motihari ","India"),
                 new Student(3,"Faiyaz","Raza Bazar Motihari","India"));

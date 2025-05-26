@@ -1,87 +1,68 @@
 package com.jenkins_demo.controller;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-@Data
-@ToString
-@AllArgsConstructor
-@NoArgsConstructor
-public class Student {
-     private int id;
-     private String  name;
-     private String address;
-     private String country;
-}
-package com.jenkins_demo.controller;
-
-import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
-
-@Data
-@ToString
-@NoArgsConstructor
 @Entity
-@Table(name = "student")
+@Table( name = "student")
+@NoArgsConstructor
 public class Student {
-     @Id
-     @GeneratedValue(strategy = GenerationType.IDENTITY)
-     private int id;
-     private String  name;
-     private String address;
-     private String country;
 
-     public Student(int id, String name, String address, String country) {
-          this.id = id;
-          this.name = name;
-          this.address = address;
-          this.country = country;
-     }
+    @Id
+    private int id;
+    private String name;
+    private String address;
+    private String country;
 
-     public int getId() {
-          return id;
-     }
+    public Student(int id, String name, String address, String country) {
+        this.id = id;
+        this.name = name;
+        this.address = address;
+        this.country = country;
+    }
 
-     public void setId(int id) {
-          this.id = id;
-     }
+    @Override
+    public String toString() {
+        return "Student{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", address='" + address + '\'' +
+                ", country='" + country + '\'' +
+                '}';
+    }
 
-     public String getName() {
-          return name;
-     }
+    public int getId() {
+        return id;
+    }
 
-     public void setName(String name) {
-          this.name = name;
-     }
+    public void setId(int id) {
+        this.id = id;
+    }
 
-     public String getAddress() {
-          return address;
-     }
+    public String getName() {
+        return name;
+    }
 
-     public void setAddress(String address) {
-          this.address = address;
-     }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-     public String getCountry() {
-          return country;
-     }
+    public String getAddress() {
+        return address;
+    }
 
-     public void setCountry(String country) {
-          this.country = country;
-     }
+    public void setAddress(String address) {
+        this.address = address;
+    }
 
-     @Override
-     public String toString() {
-          return "Student{" +
-                  "id=" + id +
-                  ", name='" + name + '\'' +
-                  ", address='" + address + '\'' +
-                  ", country='" + country + '\'' +
-                  '}';
-     }
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
 }
