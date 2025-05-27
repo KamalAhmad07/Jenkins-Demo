@@ -7,12 +7,11 @@ services:
     ports:
       - "8090:3306"
     environment:
-#      MYSQL_DATABASE: practice
       MYSQL_DATABASE: ${MYSQL_DB}
       MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
-    #      MYSQL_ROOT_PASSWORD: kamal2002
     volumes:
       - mysql_data:/var/lib/mysql
+    restart: always
 
   app:
     build:
@@ -21,7 +20,6 @@ services:
     container_name: springboot-app
     ports:
       - "${APP_PORT}:${APP_PORT}"
-#      - "8082:8082"
     depends_on:
       - mysql
     environment:
@@ -30,6 +28,12 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILE}
       SERVER_PORT: ${APP_PORT}
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   mysql_data:

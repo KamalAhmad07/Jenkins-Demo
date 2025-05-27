@@ -1,114 +1,132 @@
 pipeline {
-agent any
-parameters {
-    choice(name: 'ENV', choices: ['dev', 'staging', 'prod'], description: 'Select the deployment environment')
-    string(name: 'PORT', defaultValue: '8082', description: 'Application port to run the service')
-}
+    agent any
 
-environment {
-    JAR_NAME = "Jenkins-Demo-${params.ENV}.jar"
-    IMAGE_NAME = "kamalahmad/jenkins-demo"
-    MYSQL_PASSWORD = credentials('MYSQL_PASSWORD')
-}
-
-tools {
-    maven 'M3'
-}
-
-stages {
-    stage('🧾 Checkout') {
-        steps {
-            git 'https://github.com/KamalAhmad07/Jenkins-Demo.git'
-        }
+    parameters {
+        choice(name: 'ENV', choices: ['dev', 'staging', 'prod'], description: 'Select the deployment environment')
+        string(name: 'PORT', defaultValue: '8082', description: 'Application port to run the service')
     }
 
-    stage('🏗️ Build') {
-        steps {
-            bat 'mvn clean install'
-        }
+    environment {
+        JAR_NAME = "Jenkins-Demo-${params.ENV}.jar"
+        IMAGE_NAME = "kamalahmad/jenkins-demo"
+        MYSQL_PASSWORD = credentials('MYSQL_PASSWORD')
     }
 
-    stage('🧪 Run Tests') {
-        steps {
-            bat 'mvn test'
-        }
+    tools {
+        maven 'M3'
     }
 
-    stage('🗃️ Rename Jar') {
-        steps {
-            bat "copy target\\Jenkins-Demo-0.0.1-SNAPSHOT.jar target\\${env.JAR_NAME}"
-        }
-    }
+    stages {
 
-    stage('📦 Archive Artifact') {
-        steps {
-            archiveArtifacts artifacts: "target/${env.JAR_NAME}", fingerprint: true
+        // 1️⃣ Checkout Code from GitHub
+        stage('🧾 Checkout') {
+            steps {
+                git 'https://github.com/KamalAhmad07/Jenkins-Demo.git'
+            }
         }
-    }
 
-    stage('❌ Kill Previous App on Port') {
-        steps {
-            bat """
-                echo Checking for any process using port ${params.PORT}...
-                for /f "tokens=5" %%a in ('netstat -aon ^| findstr :${params.PORT}') do (
-                    echo Killing PID %%a
-                    taskkill /F /PID %%a || exit /B 0
-                )
-                exit /B 0
-            """
+        // 2️⃣ Build the project using Maven
+        stage('🏗️ Build') {
+            steps {
+                bat 'mvn clean install'
+            }
         }
-    }
 
-    stage('🐳 Docker Build & Tag') {
-        steps {
-            bat "docker build -t ${env.IMAGE_NAME}:${env.BUILD_NUMBER} ."
+        // 3️⃣ Run JUnit Tests
+        stage('🧪 Run Tests') {
+            steps {
+                bat 'mvn test'
+            }
         }
-    }
 
-    stage('🔐 Docker Login & Push') {
-        steps {
-            withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+        // 4️⃣ Rename the jar file based on environment
+        stage('🗃️ Rename Jar') {
+            steps {
+                bat "copy target\\Jenkins-Demo-0.0.1-SNAPSHOT.jar target\\${env.JAR_NAME}"
+            }
+        }
+
+        // 5️⃣ Archive the built JAR as an artifact
+        stage('📦 Archive Artifact') {
+            steps {
+                archiveArtifacts artifacts: "target/${env.JAR_NAME}", fingerprint: true
+            }
+        }
+
+        // 6️⃣ Kill any process running on the same port
+        stage('❌ Kill Previous App on Port') {
+            steps {
                 bat """
-                    echo Logging into DockerHub...
-                    docker login -u %DOCKER_USER% -p %DOCKER_PASS%
-                    docker push ${env.IMAGE_NAME}:${env.BUILD_NUMBER}
+                    echo Checking for any process using port ${params.PORT}...
+                    for /f "tokens=5" %%a in ('netstat -aon ^| findstr :${params.PORT}') do (
+                        echo Killing PID %%a
+                        taskkill /F /PID %%a || exit /B 0
+                    )
+                    exit /B 0
                 """
+            }
+        }
+
+        // 7️⃣ Clean up old unused Docker images
+        stage('🧹 Docker Image Prune') {
+            steps {
+                bat "docker image prune -f"
+            }
+        }
+
+        // 8️⃣ Build Docker Image & Tag with Build Number
+        stage('🐳 Docker Build & Tag') {
+            steps {
+                bat "docker build -t ${env.IMAGE_NAME}:${env.BUILD_NUMBER} ."
+            }
+        }
+
+        // 9️⃣ Login to DockerHub and Push the image
+        stage('🔐 Docker Login & Push') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    bat """
+                        echo Logging into DockerHub...
+                        docker login -u %DOCKER_USER% -p %DOCKER_PASS%
+                        docker push ${env.IMAGE_NAME}:${env.BUILD_NUMBER}
+                    """
+                }
+            }
+        }
+
+        // 🔟 Run the App in Container (instead of java -jar)
+        stage('🚀 Run App via Docker') {
+            steps {
+                bat """
+                    echo 🐳 Running Docker container on port ${params.PORT}...
+                    docker run -d --rm --name springboot-app -p ${params.PORT}:${params.PORT} ${env.IMAGE_NAME}:${env.BUILD_NUMBER}
+
+                    echo 🛡️ Waiting for container to initialize...
+                    timeout /T 10 >nul
+
+                    echo 📡 Verifying container port ${params.PORT}...
+                    netstat -aon | findstr :${params.PORT} || exit /B 1
+                """
+            }
+        }
+
+        // 🔁 Final confirmation
+        stage('🛰️ Deploy') {
+            steps {
+                echo "✅ Deployed '${env.JAR_NAME}' via Docker on port ${params.PORT}"
             }
         }
     }
 
-    stage('🚀 Run App on Fixed Port') {
-        steps {
-            bat """
-                echo Starting Spring Boot app on port ${params.PORT}...
-                del app.log >nul 2>&1
+    post {
+        success {
+            echo "✅ Build & Deployment successful on port ${params.PORT}"
+            mail to: 'kamalahmaddhaka2002@gmail.com',
+                 cc: 'jointokamal9@gmail.com',
+                 subject: "✅ SUCCESS: Jenkins Build #${env.BUILD_NUMBER} - ${params.ENV}",
+                 body: """Hey Kamal! 🎉
 
-                powershell -Command "Start-Process java -ArgumentList '-DSPRING_PROFILES_ACTIVE=${params.ENV}','-Dserver.port=${params.PORT}','-DMYSQL_PASSWORD=${env.MYSQL_PASSWORD}','-jar','target\\\\${env.JAR_NAME}' -RedirectStandardOutput app.log -NoNewWindow"
-
-                cmd /c timeout /T 10 >nul
-
-                echo Verifying if port ${params.PORT} is now in use...
-                netstat -aon | findstr :${params.PORT} || exit /B 0
-            """
-        }
-    }
-
-    stage('🛰️ Deploy') {
-        steps {
-            echo "✅ Deploying '${env.JAR_NAME}' to environment: ${params.ENV} on port: ${params.PORT}"
-        }
-    }
-}
-
-post {
-    success {
-        echo "✅ Build & Deployment successful on port ${params.PORT}"
-        mail to: 'kamalahmaddhaka2002@gmail.com',
-             cc: 'jointokamal9@gmail.com',
-             subject: "✅ SUCCESS: Jenkins Build #${env.BUILD_NUMBER} - ${params.ENV}",
-             body: """Hey Kamal! 
-             
-✅ Your app was built, Docker image was pushed, and deployed successfully on port ${params.PORT} in the '${params.ENV}' environment.
+✅ Your app was built, Docker image was pushed, and deployed successfully via container on port ${params.PORT}.
 
 🖼️ Docker Image: ${env.IMAGE_NAME}:${env.BUILD_NUMBER}
 🔗 Build: ${env.BUILD_URL}
@@ -117,15 +135,13 @@ post {
 
 Jenkins Pipeline Bot 🤖
 """
-}
+        }
 
-
-  failure {
-      echo "❌ Build or Deployment failed"
-      mail to: 'kamalahmaddhaka2002@gmail.com',
-           subject: "❌ FAILED: Jenkins Build #${env.BUILD_NUMBER} - ${params.ENV}",
-           body: """Hey Kamal,
-
+        failure {
+            echo "❌ Build or Deployment failed"
+            mail to: 'kamalahmaddhaka2002@gmail.com',
+                 subject: "❌ FAILED: Jenkins Build #${env.BUILD_NUMBER} - ${params.ENV}",
+                 body: """Hey Kamal,
 
 ❌ Something broke in your build or Docker process.
 
@@ -134,10 +150,10 @@ Jenkins Pipeline Bot 🤖
 
 Jenkins Pipeline Bot 🤖
 """
-}
+        }
 
-  always {
-      echo "📦 Jenkins job completed"
-  }
-}
+        always {
+            echo "📦 Jenkins job completed"
+        }
+    }
 }
