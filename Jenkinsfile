@@ -98,7 +98,8 @@ pipeline {
         stage('🚀 Run App via Docker-Compose') {
             steps {
                bat """
-                        bat 'docker-compose up --build -d'
+                     echo 🔧 Running docker-compose to start services...
+                     docker-compose up --build -d
                    """
             }
         }
