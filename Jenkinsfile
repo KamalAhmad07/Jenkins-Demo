@@ -97,16 +97,20 @@ pipeline {
         // 🔟 Run the App in Container (instead of java -jar)
         stage('🚀 Run App via Docker') {
             steps {
-                bat """
-                    echo 🐳 Running Docker container on port ${params.PORT}...
-                    docker run -d --rm --name springboot-app -p ${params.PORT}:${params.PORT} ${env.IMAGE_NAME}:${env.BUILD_NUMBER}
+               bat """
+                           echo 🐳 Cleaning up any existing container...
+                           docker stop springboot-app || echo "No previous container"
+                           docker rm springboot-app || echo "No container to remove"
 
-                    echo 🛡️ Waiting for container to initialize...
-                    timeout /T 100 >nul
+                           echo 🐳 Running Docker container on port ${params.PORT}...
+                           docker run -d --restart unless-stopped --name springboot-app -p ${params.PORT}:${params.PORT} ${env.IMAGE_NAME}:${env.BUILD_NUMBER}
 
-                    echo 📡 Verifying container port ${params.PORT}...
-                    netstat -aon | findstr :${params.PORT} || exit /B 1
-                """
+                           echo 🛡️ Waiting for container to initialize...
+                           timeout /T 10 >nul
+
+                           echo 📡 Verifying container port ${params.PORT}...
+                           netstat -aon | findstr :${params.PORT} || exit /B 1
+                       """
             }
         }
 
