@@ -98,7 +98,6 @@ pipeline {
         stage('🚀 Run App via Docker-Compose') {
             steps {
                bat """
-                        bat 'docker-compose down || exit 0' // optional: clean up previous run
                         bat 'docker-compose up --build -d'
                    """
             }
