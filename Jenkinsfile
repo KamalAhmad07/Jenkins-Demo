@@ -102,7 +102,7 @@ pipeline {
                     docker run -d --rm --name springboot-app -p ${params.PORT}:${params.PORT} ${env.IMAGE_NAME}:${env.BUILD_NUMBER}
 
                     echo 🛡️ Waiting for container to initialize...
-                    timeout /T 10 >nul
+                    timeout /T 100 >nul
 
                     echo 📡 Verifying container port ${params.PORT}...
                     netstat -aon | findstr :${params.PORT} || exit /B 1
