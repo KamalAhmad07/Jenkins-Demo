@@ -68,17 +68,17 @@ pipeline {
         }
 
         // 7️⃣ Clean up old unused Docker images
-       stage('🧹 Docker Image Prune') {
-       steps {
-         script {
-          try {
-            bat 'docker image prune -f'
-           } catch (Exception e) {
-            echo "⚠️ Skipping image prune due to error: ${e.message}"
-            }
-          }
-         }
-       }
+//        stage('🧹 Docker Image Prune') {
+//        steps {
+//           script {
+//             try {
+//               bat 'docker image prune -f'
+//              } catch (Exception e) {
+//              echo "⚠️ Skipping image prune due to error: ${e.message}"
+//              }
+//            }
+//           }
+//         }
 
         // 8️⃣ Build Docker Image & Tag with Build Number
         stage('🐳 Docker Build & Tag') {
