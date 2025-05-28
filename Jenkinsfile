@@ -94,7 +94,9 @@ pipeline {
                     bat """
                         echo Logging into DockerHub...
                         docker login -u %DOCKER_USER% -p %DOCKER_PASS%
+                        docker tag ${env.IMAGE_NAME}:${env.BUILD_NUMBER} ${env.IMAGE_NAME}:latest
                         docker push ${env.IMAGE_NAME}:${env.BUILD_NUMBER}
+                        docker push ${env.IMAGE_NAME}:latest
                     """
                 }
             }
