@@ -54,16 +54,12 @@ pipeline {
         }
 
         // 6️⃣ Kill any process running on the same port
-        stage('❌ Kill Previous App on Port') {
+        stage('❌ Docker Down the previous running Container') {
             steps {
-                bat """
-                    echo Checking for any process using port ${params.PORT}...
-                    for /f "tokens=5" %%a in ('netstat -aon ^| findstr :${params.PORT}') do (
-                        echo Killing PID %%a
-                        taskkill /F /PID %%a || exit /B 0
-                    )
-                    exit /B 0
-                """
+             bat """
+               echo Stopping previous Docker containers...
+               docker-compose down || exit /B 0
+             """
             }
         }
 
