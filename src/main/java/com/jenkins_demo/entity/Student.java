@@ -1,8 +1,6 @@
-package com.jenkins_demo.controller;
+package com.jenkins_demo.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
@@ -12,13 +10,13 @@ import lombok.ToString;
 public class Student {
 
     @Id
+    @GeneratedValue(strategy =  GenerationType.AUTO)
     private int id;
     private String name;
     private String address;
     private String country;
 
-    public Student(int id, String name, String address, String country) {
-        this.id = id;
+    public Student(String name, String address, String country) {
         this.name = name;
         this.address = address;
         this.country = country;

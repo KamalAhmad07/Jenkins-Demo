@@ -21,7 +21,7 @@ spec:
             - name: SPRING_PROFILES_ACTIVE
               value: dev
             - name: SPRING_DATASOURCE_URL
-              value: jdbc:mysql://host.docker.internal:8090/practice?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+              value: jdbc:mysql://host.docker.internal:8091/${MYSQL_DB:practice}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
             - name: SPRING_DATASOURCE_USERNAME
               value: root
             - name: SPRING_DATASOURCE_PASSWORD
