@@ -98,15 +98,15 @@ pipeline {
             }
         }
 
-        // 🔟 Run the App in Container (instead of java -jar)
-        stage('🚀 Run App via Docker-Compose') {
-            steps {
-               bat """
-                     echo 🔧 Running docker-compose to start services...
-                     docker-compose up --build -d
-                   """
-            }
-        }
+//         // 🔟 Run the App in Container (instead of java -jar)
+//         stage('🚀 Run App via Docker-Compose') {
+//             steps {
+//                bat """
+//                      echo 🔧 Running docker-compose to start services...
+//                      docker-compose up --build -d
+//                    """
+//             }
+//         }
 
         // 🔁 Final confirmation
         stage('🛰️ Deploy') {

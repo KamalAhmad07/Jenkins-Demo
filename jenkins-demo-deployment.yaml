@@ -3,13 +3,12 @@ kind: Deployment
 metadata:
   name: jenkins-demo
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: jenkins-demo
   template:
     metadata:
-      labels:
         app: jenkins-demo
     spec:
       containers:

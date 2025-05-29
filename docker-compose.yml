@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: springboot-app111
+    container_name: springboot-app
     ports:
       - "${APP_PORT}:${APP_PORT}"
     environment:
