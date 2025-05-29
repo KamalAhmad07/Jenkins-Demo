@@ -21,19 +21,13 @@ stages {
     stage('🔑 Load .env File') {
         steps {
             script {
-                def envFile = readFile('.env')
-                def lines = envFile.split('\n')
-                lines.each { line ->
-                    if (line && !line.trim().startsWith('#')) {
-                        def parts = line.split('=', 2)
-                        if (parts.length == 2) {
-                            def key = parts[0].trim()
-                            def value = parts[1].trim()
-                            env[key] = value
-                            echo "Loaded env: ${key}=${value}"
-                        }
-                    }
-                }
+                       def envContent = readFile('.env')
+                                     .split('\n')
+                                     .findAll { it && !it.trim().startsWith('#') }
+                                     .collect { it.trim() }
+                                     .join(' && set ') // for Windows BAT format: set KEY=value && set KEY2=value2 ...
+
+                        env.ENV_EXPORTS = envContent
             }
         }
     }
