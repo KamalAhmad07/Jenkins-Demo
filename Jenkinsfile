@@ -1,5 +1,5 @@
 pipeline {
-agent any
+   agent any
 parameters {
     choice(name: 'ENV', choices: ['dev', 'staging', 'prod'], description: 'Select the deployment environment')
     string(name: 'PORT', defaultValue: '8082', description: 'Application port to run the service')
@@ -151,5 +151,5 @@ Jenkins Pipeline Bot 🤖
         always {
             echo "📦 Jenkins job completed"
         }
+    }
 }
-
