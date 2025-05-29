@@ -30,8 +30,6 @@ public class Controller {
         Student  s3 = new Student("Faiyaz","Raza Bazar Motihari","India");
 
        List<Student> students = List.of(s1,s2,s3);
-       List<Student>  students1 = repository.saveAll(students);
-        System.err.println("srudents1 ==1 " + students1);
-        return students1;
+       return  repository.saveAll(students);
     }
 }
