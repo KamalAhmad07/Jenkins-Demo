@@ -106,14 +106,14 @@ pipeline {
         }
 
         // 🕒 Wait for MySQL readiness
-        stage('🕒 Wait for MySQL readiness') {
-            steps {
-                bat """
-                    echo Waiting for MySQL to be ready...
-                    docker-compose exec mysql sh -c "until mysql -u root -p%MYSQL_PASSWORD% -e \\"SHOW DATABASES\\"; do echo Waiting...; sleep 5; done"
-                """
-            }
-        }
+//         stage('🕒 Wait for MySQL readiness') {
+//             steps {
+//                 bat """
+//                     echo Waiting for MySQL to be ready...
+//                     docker-compose exec mysql sh -c "until mysql -u root -p%MYSQL_PASSWORD% -e \\"SHOW DATABASES\\"; do echo Waiting...; sleep 5; done"
+//                 """
+//             }
+//         }
 
         // 🛰️ Final confirmation
         stage('🛰️ Deploy') {
