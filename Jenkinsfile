@@ -42,7 +42,7 @@ pipeline {
         // 4️⃣ Run JUnit Tests
         stage('🧪 Run Tests') {
             steps {
-                bat 'mvn test'
+                bat 'mvn clean test'
             }
         }
 
