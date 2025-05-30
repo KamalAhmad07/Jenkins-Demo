@@ -5,13 +5,18 @@ services:
     image: mysql:8.0
     container_name: mysql
     environment:
-      MYSQL_DATABASE: ${MYSQL_DB}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: practice
+      MYSQL_ROOT_PASSWORD: kamal2002
     ports:
       - "${MYSQL_PORT}:3306"
     networks:
       - springboot-net
     restart: always
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   app:
     build:
@@ -27,7 +32,8 @@ services:
       SPRING_PROFILES_ACTIVE: dev
       SERVER_PORT: 8082
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
     networks:
       - springboot-net
     restart: always
