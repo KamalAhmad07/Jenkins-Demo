@@ -99,6 +99,18 @@ stages {
         }
     }
 
+
+    // 🚀 Run the App via Docker-Compose
+    stage('🚀 Run App via Docker-Compose') {
+        steps {
+            bat """
+                echo 🔧 Running docker-compose to start services...
+                docker-compose down || exit /B 0
+                docker-compose up --build -d
+            """
+        }
+    }
+
     // 🔁 Final confirmation
     stage('🛰️ Deploy') {
         steps {
